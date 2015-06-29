@@ -55,7 +55,7 @@ train$n
 ```
 
 
-Run Sobel Operator on MNIST
+#Run Sobel Operator on MNIST
 ```{r}
 R <- train$x[2,]
   M <- matrix(R, nrow=28)[,28:1]
