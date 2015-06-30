@@ -54,7 +54,7 @@ train$n
 
 M <-matrix(0, nrow=6000, ncol=784)
   F <- matrix(c(0),3,3)
-    G_x <- c(-1,0,-1,-2,0,2,-1,0,1)
+    G_x <- c(-1,0,1,-2,0,2,-1,0,1)
       G_y <- c(1,2,1,0,0,0,-1,-2,-1)
    
        
@@ -71,7 +71,7 @@ for (n in 1:6000){
           v <-c(F[1,],F[2,],F[3,])
             g_x <- G_x %*% v
             g_y <- G_y %*% v
-      mFeature[i,j] <- sqrt((g_x)^2+(g_y)^2)
+      mFeature[i,j] <- abs(g_x)+abs(g_y)
       
      
       }  
