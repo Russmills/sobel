@@ -52,13 +52,13 @@ train$n
 #Run Sobel Operator on MNIST
 ```{r}
 
-M <-matrix(0, nrow=2000, ncol=784)
+M <-matrix(0, nrow=6000, ncol=784)
   F <- matrix(c(0),3,3)
     G_x <- c(-1,0,-1,-2,0,2,-1,0,1)
       G_y <- c(1,2,1,0,0,0,-1,-2,-1)
    
        
-for (n in 1:2000){ 
+for (n in 1:6000){ 
  R <- train$x[n,] 
          m <- matrix(R, nrow=28)[,28:1]
           mFeature <- matrix(R, nrow=28)[,28:1]
@@ -80,21 +80,81 @@ for (n in 1:2000){
           a <- as.vector(mFeature)
           Average <- sum(a)/784
           b <- mFeature < Average
-          a[b] <- 0
+          a[b] <- -1
           M[n,] <- a
 }
 ```
 
+#Run  Operator on MNIST
+```{r}
 
-# Run Rtsne
+M <-matrix(0, nrow=6000, ncol=784)
+  F <- matrix(c(0),3,3)
+    G_x <- c(-1,0,1,-2,0,2,-1,0,1)
+      G_y <- c(1,2,1,0,0,0,-1,-2,-1)
+   
+       
+for (n in 1:6000){ 
+ R <- train$x[n,] 
+         m <- matrix(R, nrow=28)[,28:1]
+          mFeature <- matrix(R, nrow=28)[,28:1]
+        
+  for (i in 2:27){
+    for (j in 2:27){
+      for (r in (i-1):(i+1)){
+        
+          F[r-(i-2),] <- c(m[r, (j-1):(j+1)])
+          v <-c(F[1,],F[2,],F[3,])
+            g_x <- G_x %*% v
+            g_y <- G_y %*% v
+      mFeature[i,j] <- abs(g_x)+abs(g_y)
+     
+      }  
+    }  
+  }
+          a <- as.vector(mFeature)
+          Average <- sum(a)/784
+          b <- mFeature < Average
+          a[b] <- -1
+          M[n,] <- a
+}
+```
+# Run Rtsne ON 2D
 
 ```{r}
-set.seed(620251)
-ind <- sample(nrow(train$x),size=6000,replace=FALSE)
+set.seed(1)
+ind <- sample(nrow(M),size=6000,replace=FALSE)
 labels <- train$y[ind]
-Rtsne_input=train$x[ind,]# number of random rows of 60000.
+Rtsne_input=M[ind,]# number of random rows of 60000.
 library(Rtsne)
-Rtsne_result=Rtsne(Rtsne_input, dims = 3, initial_dims = 20, perplexity = 25,
+Rtsne_result=Rtsne(Rtsne_input, dims = 2, initial_dims = 30, perplexity = 40,
+        theta = 0.1, check_duplicates = TRUE, pca = TRUE, max_iter = 1000,
+        verbose = FALSE, is_distance = FALSE)
+
+
+pc1 <- matrix(Rtsne_result$Y[,1])
+pc2 <- matrix(Rtsne_result$Y[,2])
+
+cc1=gsub("1","gold",labels)
+cc2=gsub("0","darkgreen",cc1)
+colorlabels <- cc2
+
+#plot3d(pc1, pc2, pc3)
+library(plot3D)
+library(rgl)
+library(igraph)
+plot(pc1,pc2, col=cc2)
+```
+
+# Run Rtsne ON 3D
+
+```{r}
+set.seed(2)
+ind <- sample(nrow(M),size=6000,replace=FALSE)
+labels <- train$y[ind]
+Rtsne_input=M[ind,]# number of random rows of 60000.
+library(Rtsne)
+Rtsne_result=Rtsne(Rtsne_input, dims = 3, initial_dims = 20, perplexity = 50,
         theta = 0.1, check_duplicates = TRUE, pca = TRUE, max_iter = 1000,
         verbose = FALSE, is_distance = FALSE)
 
