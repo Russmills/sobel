@@ -1,4 +1,3 @@
-# sobel
 ---
 title: "Untitled"
 author: "Jiyi Jiang"
@@ -47,35 +46,46 @@ show_digit <- function(arr784, col=gray(12:1/12), ...) {
 
 load_mnist()
 train$n
-
-
-# create an index vector
-#ind <- sample(nrow(X),size=2000,replace=FALSE)
-#labels <- train$y[ind]
 ```
 
 
 #Run Sobel Operator on MNIST
 ```{r}
-R <- train$x[2,]
-  M <- matrix(R, nrow=28)[,28:1]
-   MFeature <- matrix(R, nrow=28)[,28:1]
+
+M <-matrix(0, nrow=2000, ncol=784)
   F <- matrix(c(0),3,3)
     G_x <- c(-1,0,-1,-2,0,2,-1,0,1)
       G_y <- c(1,2,1,0,0,0,-1,-2,-1)
-        k <- 2
-for (i in 2:27){
-  for (j in 2:27){
-    for (r in (i-1):(i+1)){
-      F[r-(i-2),] <- c(M[r, (j-1):(j+1)])
-      v <-c(F[k-1,],F[k,],F[k+1,])
-      g_x <- G_x %*% v
-      #g_y <- G_y %*% v
-      MFeature[i,j] <- sqrt((g_x)^2+(g_y)^2)
+   
+       
+for (n in 1:2000){ 
+ R <- train$x[n,] 
+         m <- matrix(R, nrow=28)[,28:1]
+          mFeature <- matrix(R, nrow=28)[,28:1]
+        
+  for (i in 2:27){
+    for (j in 2:27){
+      for (r in (i-1):(i+1)){
+        
+          F[r-(i-2),] <- c(m[r, (j-1):(j+1)])
+          v <-c(F[1,],F[2,],F[3,])
+            g_x <- G_x %*% v
+            g_y <- G_y %*% v
+      mFeature[i,j] <- sqrt((g_x)^2+(g_y)^2)
+      
+     
+      }  
     }  
   }
+          a <- as.vector(mFeature)
+          Average <- sum(a)/784
+          b <- mFeature < Average
+          a[b] <- 0
+          M[n,] <- a
 }
 ```
+
+
 # Run Rtsne
 
 ```{r}
