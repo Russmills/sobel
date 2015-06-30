@@ -49,16 +49,16 @@ train$n
 ```
 
 
-#Run Sobel Operator on MNIST
+#Run 3 by 3 Sobel Operator on MNIST
 ```{r}
-
+set.seed(10)
 M <-matrix(0, nrow=6000, ncol=784)
   F <- matrix(c(0),3,3)
     G_x <- c(-1,0,1,-2,0,2,-1,0,1)
       G_y <- c(1,2,1,0,0,0,-1,-2,-1)
    
        
-for (n in 1:6000){ 
+for (n in 2:2){ 
  R <- train$x[n,] 
          m <- matrix(R, nrow=28)[,28:1]
           mFeature <- matrix(R, nrow=28)[,28:1]
@@ -77,23 +77,29 @@ for (n in 1:6000){
       }  
     }  
   }
-          a <- as.vector(mFeature)
-          Average <- sum(a)/784
+          #a <- as.vector(mFeature)
+          Average <- sum(mFeature)/784
           b <- mFeature < Average
-          a[b] <- -1
-          M[n,] <- a
+          mFeature[b] <- -1
+          #M[n,] <- a
 }
+      image(mFeature,  col=gray(12:1/12))
 ```
 
-#Run  Operator on MNIST
+#Run Kirsch Operator on MNIST
 ```{r}
-
+set.seed(10)
 M <-matrix(0, nrow=6000, ncol=784)
   F <- matrix(c(0),3,3)
-    G_x <- c(-1,0,1,-2,0,2,-1,0,1)
-      G_y <- c(1,2,1,0,0,0,-1,-2,-1)
-   
-       
+    G_1 <- c(3,3,3,3,0,3,-5,-5,-5)
+      G_2 <- c(3,3,3,-5,0,3,-5,-5,3)
+       G_3 <- c(-5,3,3,-5,0,3,-5,3,3)
+        G_4 <- c(-5,-5,3,-5,0,3,3,3,3)
+         G_5 <- c(-5,-5,-5,3,0,3,3,3,3)
+          G_6 <- c(3,-5,-5,3,0,-5,3,3,3)
+           G_7 <- c(3,3,-5,3,0,-5,3,3,-5)
+            G_8<- c(3,3,3,3,0,-5,3,-5,-5)
+          
 for (n in 1:6000){ 
  R <- train$x[n,] 
          m <- matrix(R, nrow=28)[,28:1]
@@ -105,10 +111,15 @@ for (n in 1:6000){
         
           F[r-(i-2),] <- c(m[r, (j-1):(j+1)])
           v <-c(F[1,],F[2,],F[3,])
-            g_x <- G_x %*% v
-            g_y <- G_y %*% v
-      mFeature[i,j] <- abs(g_x)+abs(g_y)
-     
+            g_1 <- G_1 %*% v
+            g_2 <- G_2 %*% v
+            g_3 <- G_3 %*% v
+            g_4 <- G_4 %*% v
+            g_5 <- G_5 %*% v
+            g_6 <- G_6 %*% v
+            g_7 <- G_7 %*% v
+            g_8 <- G_8 %*% v
+      mFeature[i,j] <- g_1 <- abs(g_1)+abs(g_2)+abs(g_3)+abs(g_4)+abs(g_5)+abs(g_6)+abs(g_7)+abs(g_8)
       }  
     }  
   }
@@ -118,7 +129,10 @@ for (n in 1:6000){
           a[b] <- -1
           M[n,] <- a
 }
+            #image(mFeature,  col=gray(12:1/12))
 ```
+
+
 # Run Rtsne ON 2D
 
 ```{r}
@@ -396,13 +410,74 @@ mapper2D <- function(
 # Run mapper2D
 
 ```{r}
-#library(TDAmapper)
+library(TDAmapper)
 m2 <- mapper2D(
     distance_matrix = dist(train$x[ind,]),
     filter_values = list(Rtsne_result$Y[,1],Rtsne_result$Y[,3]),
     num_intervals = c(5,5),
-    percent_overlap = 10,
-    num_bins_when_clustering = 5)
+    percent_overlap = 50,
+    num_bins_when_clustering = 10)
+
+```
+# Plot the simplicial complex (i.e., mapper results)
+
+```{r}
+library(networkD3)
+mapperVertices <- function(m, pt_labels) {
+
+    # Hovering over vertices gives the point labels:
+    # convert the list of vectors of point indices to a list of vectors of labels
+    labels_in_vertex <- lapply( m$points_in_vertex, FUN=function(v){ pt_labels[v] } )
+    nodename <- sapply( sapply(labels_in_vertex, as.character), paste0, collapse=", ")
+    nodename <- paste0("V", 1:m$num_vertices, ": ", nodename )
+    
+    # Hovering over vertices gives the point indices:
+    # list the points in each vertex
+    # nodename <- sapply( sapply(m$points_in_vertex, as.character), paste0, collapse=", ")
+    # concatenate the vertex number with the labels for the points in each vertex
+    #nodename <- paste0("V", 1:m$num_vertices, ": ", nodename )
+    
+    nodegroup <- m$level_of_vertex
+    nodesize <- sapply(m$points_in_vertex, length)
+    
+    return(data.frame( Nodename=nodename, 
+                       Nodegroup=nodegroup, 
+                       Nodesize=nodesize ))
+    
+}
+
+mapperEdges <- function(m) {
+    linksource <- c()
+    linktarget <- c()
+    linkvalue <- c()
+    k <- 1
+    for (i in 2:m$num_vertices) {
+        for (j in 1:(i-1)) {
+            if (m$adjacency[i,j] == 1) {
+                linksource[k] <- i-1
+                linktarget[k] <- j-1
+                linkvalue[k] <- 2
+                k <- k+1
+            }
+        }
+    }
+    return( data.frame( Linksource=linksource,
+                        Linktarget=linktarget, 
+                        Linkvalue=linkvalue ) )
+    
+}
+
+# create data frames for vertices and edges with the right variable names 
+MapperNodes <- mapperVertices(m2, labels)
+MapperLinks <- mapperEdges(m2)
+
+# interactive plot
+forceNetwork(Nodes = MapperNodes, Links = MapperLinks, 
+            Source = "Linksource", Target = "Linktarget",
+            Value = "Linkvalue", NodeID = "Nodename",
+            Group = "Nodegroup", opacity = 0.8, 
+            linkDistance = 10, charge = -400)
+
 library(igraph)
 g2 <- graph.adjacency(m2$adjacency, mode="undirected")
 plot(g2, layout = layout.auto(g2) )
