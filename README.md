@@ -48,7 +48,6 @@ load_mnist()
 train$n
 ```
 
-
 #Run 3 by 3 Sobel Operator on MNIST
 ```{r}
 set.seed(10)
@@ -58,10 +57,10 @@ M <-matrix(0, nrow=6000, ncol=784)
       G_y <- c(1,2,1,0,0,0,-1,-2,-1)
    
        
-for (n in 2:2){ 
+for (n in 1:6000){ 
  R <- train$x[n,] 
          m <- matrix(R, nrow=28)[,28:1]
-          mFeature <- matrix(R, nrow=28)[,28:1]
+          m1Feature <- matrix(R, nrow=28)[,28:1]
         
   for (i in 2:27){
     for (j in 2:27){
@@ -71,21 +70,59 @@ for (n in 2:2){
           v <-c(F[1,],F[2,],F[3,])
             g_x <- G_x %*% v
             g_y <- G_y %*% v
-      mFeature[i,j] <- abs(g_x)+abs(g_y)
+      m1Feature[i,j] <- abs(g_x)+abs(g_y)
       
      
       }  
     }  
   }
-          #a <- as.vector(mFeature)
+          mFeature <- m1Feature[,1:28]
+          a <- as.vector(mFeature)
           Average <- sum(mFeature)/784
           b <- mFeature < Average
           mFeature[b] <- -1
-          #M[n,] <- a
+          M[n,] <- 
 }
-      image(mFeature,  col=gray(12:1/12))
+      #image(mFeature,  col=gray(12:1/12))
 ```
 
+#Run 5 by 5 Sobel Operator on MNIST
+```{r}
+set.seed(10)
+M <-matrix(0, nrow=6000, ncol=784)
+  F <- matrix(c(0),5,5)
+    G_x <- c(2,2,2,2,2,1,1,1,1,1,0,0,0,0,0,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2)
+      G_y <- c(-2,-1,0,1,2,-2,-1,0,1,2,-2,-1,0,1,2,-2,-1,0,1,2,-2,-1,0,1,2)
+   
+       
+for (n in 1:6000){ 
+ R <- train$x[n,] 
+         m <- matrix(R, nrow=28)[,28:1]
+          m1Feature <- matrix(R, nrow=28)[,28:1]
+        
+  for (i in 3:26){
+    for (j in 3:26){
+      for (r in (i-2):(i+2)){
+        
+          F[r-(i-3),] <- c(m[r, (j-2):(j+2)])
+          v <-c(F[1,],F[2,],F[3,],F[4,],F[5,])
+            g_x <- G_x %*% v
+            g_y <- G_y %*% v
+      m1Feature[i,j] <- abs(g_x)+abs(g_y)
+      
+     
+      }  
+    }  
+  }
+          mFeature <- m1Feature[,1:28]
+          a <- as.vector(mFeature)
+          Average <- sum(mFeature)/784
+          b <- mFeature < Average
+          mFeature[b] <- -1
+          M[n,] <- a
+}
+      #image(mFeature,  col=gray(12:1/12))
+```
 #Run Kirsch Operator on MNIST
 ```{r}
 set.seed(10)
@@ -100,10 +137,10 @@ M <-matrix(0, nrow=6000, ncol=784)
            G_7 <- c(3,3,-5,3,0,-5,3,3,-5)
             G_8<- c(3,3,3,3,0,-5,3,-5,-5)
           
-for (n in 1:6000){ 
- R <- train$x[n,] 
+for (n in 14:14){ 
+ R <- train$x[n,]  
          m <- matrix(R, nrow=28)[,28:1]
-          mFeature <- matrix(R, nrow=28)[,28:1]
+          m1Feature <- matrix(R, nrow=28)[,28:1]
         
   for (i in 2:27){
     for (j in 2:27){
@@ -119,10 +156,11 @@ for (n in 1:6000){
             g_6 <- G_6 %*% v
             g_7 <- G_7 %*% v
             g_8 <- G_8 %*% v
-      mFeature[i,j] <- g_1 <- abs(g_1)+abs(g_2)+abs(g_3)+abs(g_4)+abs(g_5)+abs(g_6)+abs(g_7)+abs(g_8)
+      m1Feature[i,j] <- g_1 <- abs(g_1)+abs(g_2)+abs(g_3)+abs(g_4)+abs(g_5)+abs(g_6)+abs(g_7)+abs(g_8)
       }  
     }  
   }
+          mFeature <- m1Feature[,1:28]
           a <- as.vector(mFeature)
           Average <- sum(a)/784
           b <- mFeature < Average
@@ -133,42 +171,43 @@ for (n in 1:6000){
 ```
 
 
-# Run Rtsne ON 2D
+# Run Rtsne on 2D
 
 ```{r}
-set.seed(1)
-ind <- sample(nrow(M),size=6000,replace=FALSE)
-labels <- train$y[ind]
-Rtsne_input=M[ind,]# number of random rows of 60000.
+set.seed(2) 
+   #M <- train$x[1:6000,]    
+#ind <- sample(nrow(train$x),size=6000,replace=FALSE)           
+labels <- train$y[1:6000]
+Rtsne_input=train$x[1:6000,]# number of random rows of 60000.
 library(Rtsne)
-Rtsne_result=Rtsne(Rtsne_input, dims = 2, initial_dims = 30, perplexity = 40,
-        theta = 0.1, check_duplicates = TRUE, pca = TRUE, max_iter = 1000,
+Rtsne_result=Rtsne(Rtsne_input, dims = 2, initial_dims = 20, perplexity = 50,
+        theta = 0.4, check_duplicates = TRUE, pca = TRUE, max_iter = 1000,
         verbose = FALSE, is_distance = FALSE)
 
 
-pc1 <- matrix(Rtsne_result$Y[,1])
-pc2 <- matrix(Rtsne_result$Y[,2])
-
+#pc1 <- matrix(Rtsne_result$Y[,1])
+#pc2 <- matrix(Rtsne_result$Y[,2])
+#pc3 <- matrix(Rtsne_result$Y[,3])
 cc1=gsub("1","gold",labels)
 cc2=gsub("0","darkgreen",cc1)
 colorlabels <- cc2
 
 #plot3d(pc1, pc2, pc3)
-library(plot3D)
-library(rgl)
+#library(plot3D)
 library(igraph)
-plot(pc1,pc2, col=cc2)
+plot(Rtsne_result$Y, col=cc2)
 ```
+
 
 # Run Rtsne ON 3D
 
 ```{r}
-set.seed(2)
+set.seed(3)
 ind <- sample(nrow(M),size=6000,replace=FALSE)
 labels <- train$y[ind]
 Rtsne_input=M[ind,]# number of random rows of 60000.
 library(Rtsne)
-Rtsne_result=Rtsne(Rtsne_input, dims = 3, initial_dims = 20, perplexity = 50,
+Rtsne_result=Rtsne(Rtsne_input, dims = 3, initial_dims = 20, perplexity = 40,
         theta = 0.1, check_duplicates = TRUE, pca = TRUE, max_iter = 1000,
         verbose = FALSE, is_distance = FALSE)
 
@@ -412,11 +451,12 @@ mapper2D <- function(
 ```{r}
 library(TDAmapper)
 m2 <- mapper2D(
-    distance_matrix = dist(train$x[ind,]),
-    filter_values = list(Rtsne_result$Y[,1],Rtsne_result$Y[,3]),
-    num_intervals = c(5,5),
-    percent_overlap = 50,
-    num_bins_when_clustering = 10)
+    distance_matrix = dist(M[1:6000,]),
+    filter_values = list(Rtsne_result$Y[,1],Rtsne_result$Y[,2]),
+    num_intervals = c(4,4),
+    percent_overlap = 10,
+    num_bins_when_clustering = 20)
+
 
 ```
 # Plot the simplicial complex (i.e., mapper results)
