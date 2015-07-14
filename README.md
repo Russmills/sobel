@@ -170,6 +170,52 @@ for (n in 14:14){
             #image(mFeature,  col=gray(12:1/12))
 ```
 
+# Histogram equalization
+```{r}
+library(IM)
+
+unflatten <- function(arr784) {
+    return(matrix(arr784, nrow=28)[,28:1])
+}
+
+flatten <- function(mat28x28) {
+    return(as.vector(mat28x28[,28:1]))
+}
+Q <-matrix(0, nrow=6000, ncol=784)
+
+for (i in 1:6000){
+                digit_flat <- train$x[i,]
+
+# check that unflatten and flatten are inverse functions
+# digit_flat2 <- flatten(unflatten(digit_flat))
+# sum(digit_flat - digit_flat2)
+# show_digit(digit_flat)
+# show_digit(digit_flat2)
+
+digit_unflat <- unflatten(digit_flat)
+digit_histeq <- histeq( digit_unflat )
+digit_histeq_modified <- flatten(digit_histeq)
+
+digit_histeq_modified [ which(digit_histeq_modified  == min(digit_histeq_modified )) ] <- 0
+
+          
+          #Average <- sum(digit_histeq_modified)/784
+          #b <- digit_histeq_modified < Average
+          #a[b] <- 0
+          #Q[i,] <- a
+
+Q[i,] <- digit_histeq_modified
+
+                }
+
+
+
+show_digit(digit_flat)
+show_digit(a)
+show_digit(  digit_histeq_modified )
+
+
+```
 
 # Run Rtsne on 2D
 
@@ -202,12 +248,13 @@ plot(Rtsne_result$Y, col=cc2)
 # Run Rtsne ON 3D
 
 ```{r}
-set.seed(3)
-ind <- sample(nrow(M),size=6000,replace=FALSE)
+#write.table(M, file = "kirsch_matrix.csv", append = FALSE, quote = TRUE, sep = ",",row.names=FALSE,col.names = FALSE)
+set.seed(5)
+ind <- sample(nrow(Q),size=6000,replace=FALSE)
 labels <- train$y[ind]
-Rtsne_input=M[ind,]# number of random rows of 60000.
+Rtsne_input=Q[ind,]# number of random rows of 60000.
 library(Rtsne)
-Rtsne_result=Rtsne(Rtsne_input, dims = 3, initial_dims = 20, perplexity = 40,
+Rtsne_result=Rtsne(Rtsne_input, dims = 3, initial_dims = 30, perplexity = 40,
         theta = 0.1, check_duplicates = TRUE, pca = TRUE, max_iter = 1000,
         verbose = FALSE, is_distance = FALSE)
 
